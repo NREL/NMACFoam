@@ -1,0 +1,95 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  plus                                  |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volScalarField;
+    location    "0";
+    object      C;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [1 -3 0 0 0 0 0];
+
+
+internalField   uniform 32;
+
+boundaryField
+{
+    inlet
+    {
+        type            fixedValue;
+        value           uniform 32;
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    membrane1
+    {
+        type            codedMixed;
+        refValue        uniform 0;
+        refGradient     uniform 0;
+        valueFraction   uniform 0;
+        name            MembraneC1;
+        code
+        #{
+          const fvPatch& boundaryPatch = patch();
+          const fvBoundaryMesh& boundaryMesh = boundaryPatch.boundaryMesh();
+          const fvMesh& mesh = boundaryMesh.mesh();
+
+          const labelList& faceOwner = boundaryPatch.faceCells();
+          const vectorField& Cf      = boundaryPatch.Cf();
+
+          const fvPatchField<scalar>& fieldC = boundaryPatch.lookupPatchField<volScalarField,scalar>("C");
+          const volScalarField& fieldcenterC = db().lookupObject<volScalarField>("C");
+
+          int cntCell;
+          double dx;
+          double eps=1e-20;
+          scalarField Dis = 1.0/mesh.deltaCoeffs().boundaryField()[boundaryPatch.index()];
+
+          vectorField nhat = this->patch().nf();
+
+          forAll(Cf, faceI)
+          {
+                cntCell=faceOwner[faceI];
+                dx=Dis[faceI];
+                this->refGrad()[faceI]  = 0.0;
+                this->valueFraction()[faceI] = 1.0;
+                this->refValue()[faceI]      = fieldcenterC[cntCell]/(1.0-rs+rs*exp(-vp*dx/Db));
+           }
+	#};
+
+        codeInclude
+        #{
+            #include "globalVars.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(FOAM_CASE)/constant
+        #};
+
+    }
+    membrane2
+    {
+        type            zeroGradient;
+    }
+    front
+    {
+        type empty;
+    }
+    back
+    {
+        type empty;
+    }
+}
+
+// ************************************************************************* //

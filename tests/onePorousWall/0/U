@@ -1,0 +1,161 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1612+                                |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       volVectorField;
+    location    "0";
+    object      U;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+dimensions      [0 1 -1 0 0 0 0];
+
+internalField   uniform (0 0 0);
+
+boundaryField
+{
+    membrane1
+    {
+        type             codedFixedValue;
+        value            uniform (0 0 0);
+        redirectType     MembraneU1;
+
+        code
+        #{
+          const fvPatch& boundaryPatch = patch();
+          vectorField& field = *this;
+          const labelList& faceOwner = boundaryPatch.faceCells();
+          const vectorField& Cf = boundaryPatch.Cf();
+
+          const fvPatchField<scalar>& fieldC = boundaryPatch.lookupPatchField<volScalarField,scalar>("C");
+          const fvPatchField<scalar>& fieldP = boundaryPatch.lookupPatchField<volScalarField,scalar>("p_rgh");
+          const volScalarField& fieldcenterC = db().lookupObject<volScalarField>("C");
+
+          vectorField nhat = this->patch().nf();
+          double Vboundary;
+
+          forAll(Cf, faceI)
+          {
+                Vboundary=vp;
+
+                field[faceI][0]=Vboundary*nhat[faceI][0];
+                field[faceI][1]=Vboundary*nhat[faceI][1];
+                field[faceI][2]=Vboundary*nhat[faceI][2];
+          }
+	#};
+        
+        codeInclude
+        #{
+            #include "globalVars.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(FOAM_CASE)/constant
+        #};
+    }
+    inlet
+    {
+        type             codedFixedValue;
+        value            uniform (0 0 0);
+        redirectType     inletU;
+        code
+        #{
+          const fvPatch& boundaryPatch = patch();
+          vectorField& field = *this;
+          const labelList& faceOwner = boundaryPatch.faceCells();
+          const vectorField& Cf = boundaryPatch.Cf();
+
+          const fvPatchField<scalar>& fieldC = boundaryPatch.lookupPatchField<volScalarField,scalar>("C");
+          const fvPatchField<scalar>& fieldP = boundaryPatch.lookupPatchField<volScalarField,scalar>("p_rgh");
+          const volScalarField& fieldcenterC = db().lookupObject<volScalarField>("C");
+
+          vectorField nhat = this->patch().nf();
+          //double Vmid=1.5*u0;
+          double Vmid=u0;
+          double H=0.001;
+
+          forAll(Cf, faceI)
+          {
+                //negative sign for flow inwards
+                double z=Cf[faceI].z();
+                field[faceI][0]=Vmid;
+                field[faceI][1]=0.0;
+                field[faceI][2]=0.0;
+          }
+	#};
+        
+        codeInclude
+        #{
+            #include "globalVars.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(FOAM_CASE)/constant
+        #};
+    }
+    outlet
+    {
+        type            zeroGradient;
+    }
+    membrane2
+    {
+        type             codedFixedValue;
+        value            uniform (0 0 0);
+        redirectType     MembraneU2;
+
+        code
+        #{
+          const fvPatch& boundaryPatch = patch();
+          vectorField& field = *this;
+          const labelList& faceOwner = boundaryPatch.faceCells();
+          const vectorField& Cf = boundaryPatch.Cf();
+
+          const fvPatchField<scalar>& fieldC = boundaryPatch.lookupPatchField<volScalarField,scalar>("C");
+          const fvPatchField<scalar>& fieldP = boundaryPatch.lookupPatchField<volScalarField,scalar>("p_rgh");
+          const volScalarField& fieldcenterC = db().lookupObject<volScalarField>("C");
+
+          vectorField nhat = this->patch().nf();
+          double Vboundary;
+
+          forAll(Cf, faceI)
+          {
+                //Vboundary=vp;
+                Vboundary=0.0;
+
+                field[faceI][0]=Vboundary*nhat[faceI][0];
+                field[faceI][1]=Vboundary*nhat[faceI][1];
+                field[faceI][2]=Vboundary*nhat[faceI][2];
+          }
+	#};
+        
+        codeInclude
+        #{
+            #include "globalVars.H"
+        #};
+
+        codeOptions
+        #{
+            -I$(FOAM_CASE)/constant
+        #};
+    }
+    front
+    {
+        type empty;
+    }
+    back
+    {
+        type empty;
+    }
+}
+
+
+// ************************************************************************* //

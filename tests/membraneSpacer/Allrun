@@ -1,0 +1,8 @@
+#!/bin/sh
+./Allclean
+python system/write_bmesh_file.py 10
+blockMesh -dict blockMeshDict_channel
+NMACFoam
+pvpython shcorr_mem.py 32 0.99 6e-6 
+pvpython linedata.py
+
