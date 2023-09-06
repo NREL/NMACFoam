@@ -1,11 +1,29 @@
 # NMACFoam
 Numerical-model for Membrane-spacer Assemblies and Configurations in OpenFOAM
 
+
 # Build instructions
 * The solver is now compatible with openfoam version 6 - see https://github.com/OpenFOAM/OpenFOAM-dev/tree/version-6 
 and will be upgraded to the latest openfoam soon.
 * source openfoam's bashrc - source <path-to-OpenFoam-dev>/etc/bashrc
 * go to solver folder (cd NMACFoam) and do $wmake
+
+# Citation
+
+To cite NMACFoam, please use this [journal article](https://doi.org/10.1016/j.seppur.2022.122121)
+
+```
+@article{sitaraman2022impact,
+title={Impact of large-scale effects on mass transfer and concentration
+polarization in Reverse Osmosis membrane systems},
+author={Sitaraman, Hariswaran and Battiato, Ilenia},
+journal={Separation and Purification Technology},
+volume={303},
+pages={122121},
+year={2022},
+publisher={Elsevier}
+}
+```
   
 # Test cases
   Go to each of the following test cases and use the Allrun script which essentially creates a mesh and runs the solver
